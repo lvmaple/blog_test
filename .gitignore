@@ -89,14 +89,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
-*.iml
-.idea/dataSources.local.xml
-www/test.py
-*.patch
-.idea/shelf/unnamed.xml
-.idea/vcs.xml
 .idea/workspace.xml
-.idea/dataSources.xml
-.idea/dataSources/14cbda57-ae97-4a8e-b469-fab22401473c.xml
+.idea/vcs.xml
+.idea/blog_test.iml
 .idea/misc.xml
 .idea/modules.xml
