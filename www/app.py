@@ -81,11 +81,11 @@ async def response_factory(app, handler):
                 resp = web.Response(body=app['__templating__'].get_template(template).render(**r).encode('utf-8'))
                 resp.content_type = 'text/html;charset=utf-8'
                 return resp
-        if isinstance(r, int) and r >= 100 and r < 600:
+        if isinstance(r, int) and 100 < r < 600:
             return web.Response(r)
         if isinstance(r, tuple) and len(r) == 2:
             t, m = r
-            if isinstance(t, int) and t >= 100 and t < 600:
+            if isinstance(t, int) and 100 < t < 600:
                 return web.Response(t, str(m))
         # default:
         resp = web.Response(body=str(r).encode('utf-8'))
@@ -95,16 +95,39 @@ async def response_factory(app, handler):
     return response
 
 
-def index(request):
-    headers = {"content-type": "text/html"}
-    text = '<h1>Hello {}!</h1>'.format(request.match_info['name'])
-    return web.Response(body=text.encode('utf-8'), headers=headers)
+def datetime_filter(t):
+    delta = int(time.time() - t)
+    if delta < 60:
+        return u'1 minute ago'
+    if delta < 3600:
+        return u'{!s} minutes ago'.format(delta // 60)
+    if delta < 86400:
+        return u'{!s} hours ago'.format(delta // 3600)
+    if delta < 604800:
+        return u'{!s} days ago'.format(delta // 86400)
+    dt = datetime.fromtimestamp(t)
+    return u'{!s}.{!s}.{!s}'.format(dt.year, dt.month, dt.day)
 
 
+# def index(request):
+#     headers = {"content-type": "text/html"}
+#     text = '<h1>Hello {}!</h1>'.format(request.match_info['name'])
+#     return web.Response(body=text.encode('utf-8'), headers=headers)
+#
+#
+# async def init(loop):
+#     app = web.Application(loop=loop)
+#     # app.router.add_route('GET', '/', index)
+#     app.router.add_route('GET', '/{name}', index)
+#     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 8090)
+#     logging.info(str(datetime.now()) + 'server started at http://127.0.0.1:8090....')
+#     return srv
 async def init(loop):
-    app = web.Application(loop=loop)
-    # app.router.add_route('GET', '/', index)
-    app.router.add_route('GET', '/{name}', index)
+    await orm.create_pool(loop=loop, host='', port=3306, user='', password='', db='')
+    app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
+    init_jinja2(app, filters=dict(datetime=datetime_filter))
+    add_routes(app, 'handlers')
+    add_static(app)
     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 8090)
     logging.info(str(datetime.now()) + 'server started at http://127.0.0.1:8090....')
     return srv
