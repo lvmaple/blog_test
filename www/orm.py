@@ -8,7 +8,7 @@ def log(sql, args=()):
 
 
 async def create_pool(loop, **kw):
-    logging.info(str(datetime.now()) + "create database connection pool....")
+    logging.info(str(datetime.now()) + ":create database connection pool....")
     global __pool
     __pool = await aiomysql.create_pool(
         host=kw.get('host', 'localhost'),
@@ -25,7 +25,7 @@ async def create_pool(loop, **kw):
 
 
 async def destroy_pool():
-    logging.info(str(datetime.now()) + "destroy database connection pool....")
+    logging.info(str(datetime.now()) + ":destroy database connection pool....")
     global __pool
     if __pool is not None:
         __pool.close()

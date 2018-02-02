@@ -123,7 +123,7 @@ def datetime_filter(t):
 #     logging.info(str(datetime.now()) + 'server started at http://127.0.0.1:8090....')
 #     return srv
 async def init(loop):
-    await orm.create_pool(loop=loop, host='', port=3306, user='', password='', db='')
+    await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='www-data', password='www-data', db='app_test')
     app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
     init_jinja2(app, filters=dict(datetime=datetime_filter))
     add_routes(app, 'handlers')
