@@ -58,7 +58,10 @@ async def execute(sql, args, autocommit=True):
         try:
             # cur = await conn.cursor()
             async with conn.cursor(aiomysql.DictCursor) as cur:
-                await cur.execute(sql.replace('?', '%s'), args)
+                try:
+                    await cur.execute(sql.replace('?', '%s'), args)
+                except Exception as e:
+                    print(str(e))
                 affected = cur.rowcount
                 if not autocommit:
                     await conn.commit()
@@ -219,8 +222,9 @@ class Model(dict, metaclass=ModelMetaclass):
                 args.extend(limit)
             else:
                 raise ValueError('Invalid limit value: {}'.format(str(limit)))
-            rs = await select(' '.join(sql), args)
-            return [cls(**r) for r in rs]
+        logging.info(str(datetime.now()) + ' {!s}.'.format(' '.join(sql)))
+        rs = await select(' '.join(sql), args)
+        return [cls(**r) for r in rs]
 
     @classmethod
     async def findnumber(cls, selectField, where=None, args=None):
@@ -246,11 +250,11 @@ class Model(dict, metaclass=ModelMetaclass):
         args.append(self.getValue(self.__primary_key__))
         rows = await execute(self.__update__, args)
         if rows != 1:
-            logging.warn('failed to update by primary key: affected rows: %s' % rows)
+            logging.warning('failed to update by primary key: affected rows: %s' % rows)
 
     async def remove(self):
         args = [self.getvalue(self.__primary_key__)]
         rows = await execute(self.__delete__, args)
         if rows != 1:
-            logging.warn('failed to remove by primary key: affected rows: %s' % rows)
+            logging.warning('failed to remove by primary key: affected rows: %s' % rows)
 

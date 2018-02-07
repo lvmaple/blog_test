@@ -2,6 +2,8 @@ import logging;
 import asyncio, os, json, time
 from datetime import datetime
 
+from config import configs
+
 from aiohttp import web
 from jinja2 import Environment, FileSystemLoader
 
@@ -111,9 +113,12 @@ def datetime_filter(t):
 
 # def index(request):
 #     headers = {"content-type": "text/html"}
-#     text = '<h1>Hello {}!</h1>'.format(request.match_info['name'])
+#     if request.match_info:
+#         text = '<h1>Hello {}!</h1>'.format(request.match_info['name'])
+#     else:
+#         text = '<h1>Hello world!</h1>'
 #     return web.Response(body=text.encode('utf-8'), headers=headers)
-#
+
 #
 # async def init(loop):
 #     app = web.Application(loop=loop)
@@ -123,9 +128,13 @@ def datetime_filter(t):
 #     logging.info(str(datetime.now()) + 'server started at http://127.0.0.1:8090....')
 #     return srv
 async def init(loop):
-    await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='www-data', password='www-data', db='app_test')
+    # await orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='www-data', password='www-data', db='app_test')
+    await orm.create_pool(loop=loop, host=configs.db.host, port=configs.db.port, user=configs.db.user,
+                          password=configs.db.password, db=configs.db.database)
     app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
     init_jinja2(app, filters=dict(datetime=datetime_filter))
+    # app.router.add_route('GET', '/', index)
+    # app.router.add_route('GET', '/{name}', index)
     add_routes(app, 'handlers')
     add_static(app)
     srv = await loop.create_server(app.make_handler(), '127.0.0.1', 8090)
